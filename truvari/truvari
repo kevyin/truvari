@@ -658,9 +658,22 @@ def copy_entry(entry, header):
     """
     For making entries editable
     """
-    ret = header.new_record(contig=entry.chrom, start=entry.start, stop=entry.stop,
-                            alleles=entry.alleles, id=entry.id, qual=entry.qual, filter=entry.filter,
-                            info=entry.info)
+    try:
+        ret = header.new_record(contig=entry.chrom, start=entry.start, stop=entry.stop,
+                                alleles=entry.alleles, id=entry.id, qual=entry.qual, filter=entry.filter,
+                                info=entry.info)
+    except TypeError:
+        # print(entry.chrom, entry.start, entry.stop, entry.alleles, entry.id, entry.qual, entry.filter,dict(entry.info))
+        new_entry_info = dict(entry.info)
+        for key,value in dict(entry.info).items():
+            try:
+                if len(value) >=2:
+                    new_entry_info[key] = value[0]
+            except:
+                pass
+        ret = header.new_record(contig=entry.chrom, start=entry.start, stop=entry.stop,
+                                alleles=entry.alleles, id=entry.id, qual=entry.qual, info=new_entry_info)
+
     # should be able to just say samples=entry.samples...
     for sample in entry.samples:
         for k, v in entry.samples[sample].items():
@@ -668,6 +681,7 @@ def copy_entry(entry, header):
                 ret.samples[sample][k] = v
             except TypeError:
                 pass
+            
 
     return ret #header.new_record(contig=entry.chrom, start=entry.start, stop=entry.stop,
                         #    alleles=entry.alleles, id=entry.id, qual=entry.qual, filter=entry.filter,
